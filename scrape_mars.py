@@ -4,86 +4,118 @@ import pandas as pd
 from bs4 import BeautifulSoup as bs
 from splinter import Browser
 import requests
+import pymongo
 
-#URL for first site to scrape
-url = 'https://mars.nasa.gov/'
-response = requests.get(url)
-soup = bs(response.text, 'html.parser')
 
-nasa_title = soup.title.text
+def scrape():
 
-paragraphs = soup.find_all('p')
-clean_paragraph = []
-for paragraph in paragraphs:
-    clean_paragraph.append(paragraph.text)
-nasa_para = clean_paragraph[1]
+    mars_dict = {}
+    
+    #URL for first site to scrape
+    url = 'https://mars.nasa.gov/'
+    response = requests.get(url)
+    soup = bs(response.text, 'html.parser')
 
-#Using splinter to navagate the page for the feature image
-executable_path = {'executable_path': 'C:\chromedriver\chromedriver.exe'}
-browser = Browser('chrome', **executable_path, headless=False)
-find_image_url = 'https://www.jpl.nasa.gov/spaceimages/?search=&category=Mars'
-browser.visit(find_image_url)
-image_html = browser.html
-image_soup = bs(image_html, 'html.parser')
-image = image_soup.find_all('a', class_='button fancybox')
-image = str(image)
-image_link = image[330:-147]
-main_url = 'https://www.jpl.nasa.gov'
-image_url = main_url + image_link
+    nasa_title = soup.title.text
 
-browser.quit()
+    paragraphs = soup.find_all('p')
+    clean_paragraph = []
+    for paragraph in paragraphs:
+        clean_paragraph.append(paragraph.text)
+    nasa_para = clean_paragraph[1]
 
-#Pulling mars facts table 
-facts_url = 'https://space-facts.com/mars/'
-tables = pd.read_html(facts_url)
-facts_df = tables[0]
-facts_table = facts_df.to_html()
-facts_table = facts_table.replace('\n', '')
+    #Using splinter to navagate the page for the feature image
+    executable_path = {'executable_path': 'C:\chromedriver\chromedriver.exe'}
+    browser = Browser('chrome', **executable_path, headless=False)
+    find_image_url = 'https://www.jpl.nasa.gov/spaceimages/?search=&category=Mars'
+    browser.visit(find_image_url)
+    image_html = browser.html
+    image_soup = bs(image_html, 'html.parser')
+    image = image_soup.find_all('a', class_='button fancybox')
+    image = str(image)
+    image_link = image[330:-148]
+    main_url = 'https://www.jpl.nasa.gov'
+    image_url = main_url + image_link
 
-#using splinter to navigate between 4 pages to pull image URL's
-hemisphere_url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
-executable_path = {'executable_path': 'C:\chromedriver\chromedriver.exe'}
-hemisphere_browser = Browser('chrome', **executable_path, headless=False)
-hemisphere_browser.visit(hemisphere_url)
-hemisphere_html = hemisphere_browser.html
-hemisphere_soup = bs(hemisphere_html, 'html.parser')
+    browser.quit()
 
-hemisphere_browser.links.find_by_partial_text('Cerberus Hemisphere Enhanced').click()
-hemisphere_browser.links.find_by_partial_text('Sample').click()
-cerberus_browser = hemisphere_browser.html
-cerberus_soup = bs(cerberus_browser, 'html.parser')
-cerberus_img = cerberus_soup.find_all('a')[4]
+    #Pulling mars facts table 
+    facts_url = 'https://space-facts.com/mars/'
+    tables = pd.read_html(facts_url)
+    facts_df = tables[0]
+    facts_table = facts_df.to_html()
+    facts_table = facts_table.replace('\n', '')
 
-hemisphere_browser.visit(hemisphere_url)
-hemisphere_browser.links.find_by_partial_text('Schiaparelli Hemisphere Enhanced').click()
-hemisphere_browser.links.find_by_partial_text('Sample').click()
-schiaparelli_browser = hemisphere_browser.html
-schiaparelli_soup = bs(schiaparelli_browser, 'html.parser')
-schiaparelli_img = schiaparelli_soup.find_all('a')[4]
+    #using splinter to navigate between 4 pages to pull image URL's
+    hemisphere_url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
+    executable_path = {'executable_path': 'C:\chromedriver\chromedriver.exe'}
+    hemisphere_browser = Browser('chrome', **executable_path, headless=False)
+    hemisphere_browser.visit(hemisphere_url)
+    hemisphere_html = hemisphere_browser.html
+    hemisphere_soup = bs(hemisphere_html, 'html.parser')
 
-hemisphere_browser.visit(hemisphere_url)
-hemisphere_browser.links.find_by_partial_text('Syrtis Major Hemisphere Enhanced').click()
-hemisphere_browser.links.find_by_partial_text('Sample').click()
-syrtis_browser = hemisphere_browser.html
-syrtis_soup = bs(syrtis_browser, 'html.parser')
-syrtis_img = syrtis_soup.find_all('a')[4]
+    hemisphere_browser.links.find_by_partial_text('Cerberus Hemisphere Enhanced').click()
+    hemisphere_browser.links.find_by_partial_text('Sample').click()
+    cerberus_browser = hemisphere_browser.html
+    cerberus_soup = bs(cerberus_browser, 'html.parser')
+    cerberus_img = cerberus_soup.find_all('a')[4]
 
-hemisphere_browser.visit(hemisphere_url)
-hemisphere_browser.links.find_by_partial_text('Valles Marineris Hemisphere Enhanced').click()
-hemisphere_browser.links.find_by_partial_text('Sample').click()
-valles_browser = hemisphere_browser.html
-valles_soup = bs(valles_browser, 'html.parser')
-valles_img = valles_soup.find_all('a')[4]
+    hemisphere_browser.visit(hemisphere_url)
+    hemisphere_browser.links.find_by_partial_text('Schiaparelli Hemisphere Enhanced').click()
+    hemisphere_browser.links.find_by_partial_text('Sample').click()
+    schiaparelli_browser = hemisphere_browser.html
+    schiaparelli_soup = bs(schiaparelli_browser, 'html.parser')
+    schiaparelli_img = schiaparelli_soup.find_all('a')[4]
 
-hemisphere_browser.quit()
+    hemisphere_browser.visit(hemisphere_url)
+    hemisphere_browser.links.find_by_partial_text('Syrtis Major Hemisphere Enhanced').click()
+    hemisphere_browser.links.find_by_partial_text('Sample').click()
+    syrtis_browser = hemisphere_browser.html
+    syrtis_soup = bs(syrtis_browser, 'html.parser')
+    syrtis_img = syrtis_soup.find_all('a')[4]
 
-#converting the beautiful soup elements to a string
-cerberus = str(cerberus_img)
-schiaparelli = str(schiaparelli_img)
-syrtis = str(syrtis_img)
-valles = str(valles_img)
-#trimming the strings to only use the URL part
-cerberus_link = cerberus[9:-28]
-schiaparelli_link = schiaparelli[9:-28]
-syrtis_link = syrtis[9:-28]
-valles_link = valles[9:-28]
+    hemisphere_browser.visit(hemisphere_url)
+    hemisphere_browser.links.find_by_partial_text('Valles Marineris Hemisphere Enhanced').click()
+    hemisphere_browser.links.find_by_partial_text('Sample').click()
+    valles_browser = hemisphere_browser.html
+    valles_soup = bs(valles_browser, 'html.parser')
+    valles_img = valles_soup.find_all('a')[4]
+
+    hemisphere_browser.quit()
+
+    #converting the beautiful soup elements to a string
+    cerberus = str(cerberus_img)
+    schiaparelli = str(schiaparelli_img)
+    syrtis = str(syrtis_img)
+    valles = str(valles_img)
+    #trimming the strings to only use the URL part
+    cerberus_link = cerberus[9:-28]
+    schiaparelli_link = schiaparelli[9:-28]
+    syrtis_link = syrtis[9:-28]
+    valles_link = valles[9:-28]
+
+    #hemisphere_image_urls = [
+    #    {"title": "Valles Marineris Hemisphere", "img_url":valles_link},
+    #    {"title": "Cerberus Hemisphere", "img_url": cerberus_link},
+    #    {"title": "Schiaparelli Hemisphere", "img_url": schiaparelli_link},
+    #    {"title": "Syrtis Major Hemisphere", "img_url": syrtis_link},
+    #]
+
+    mars_data = {
+        "nasa_title": nasa_title,
+        "nasa_para": nasa_para,
+        "image_url": image_url,
+        "facts_table": facts_table,
+        "valles_link": valles_link,
+        "cerberus_link": cerberus_link,
+        "schiaparelli_link": schiaparelli_link,
+        "syrtis_link": syrtis_link
+    }
+#   mars_dict["Nasa Title"] = nasa_title
+#  mars_dict["Nasa Paragraph"] = nasa_para
+#   mars_dict["Feature image"] = image_url
+#  mars_dict["Mars Facts"] = facts_table
+#   mars_dict["Mars Images"] = hemisphere_image_urls
+    
+
+    return mars_data
