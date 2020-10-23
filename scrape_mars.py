@@ -45,7 +45,9 @@ def scrape():
     facts_df = tables[0]
     facts_table = facts_df.to_html()
     facts_table = facts_table.replace('\n', '')
-
+    table = str(facts_table)
+    facts_table = table[7:-8]
+    
     #using splinter to navigate between 4 pages to pull image URL's
     hemisphere_url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
     executable_path = {'executable_path': 'C:\chromedriver\chromedriver.exe'}
